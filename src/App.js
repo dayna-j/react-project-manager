@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import Projects from './components/Projects';
 import AddProject from './components/AddProject';
+import Todos from './components/Todos'
 // import 'reset-css';
 import uuid from 'uuid';
+import $ from 'jquery';
 import './App.css';
 
 class App extends Component {
@@ -13,15 +15,31 @@ class App extends Component {
 
     // projects state is passed to Projects component as props
     this.state = {
-      projects: []
+      projects: [],
+      todos: []
     }
 
     this.handleAddProject = this.handleAddProject.bind(this);
     this.handleDeleteProject = this.handleDeleteProject.bind(this);
   }
-  // componentWillMount is a lifecycle method that sets up the initial project state values
-  // When the App is loaded
-  componentWillMount() {
+
+  getTodos() {
+    $.ajax({
+      url: 'https://jsonplaceholder.typicode.com/todos',
+      data: 'JSON',
+      cache: false,
+      success: function(data) {
+        this.setState({todos: data}, function(){
+          console.log(this.state);
+        });
+      }.bind(this), 
+      error: function(xhr, status, err) {
+        console.log(err);
+      }
+    });
+  }
+
+  getProjects() {
     this.setState({projects: [
       {
         id: uuid.v4(),
@@ -40,7 +58,18 @@ class App extends Component {
       }
     ]});
   }
+
+  // componentWillMount is a lifecycle method that sets up the initial project state values
+  // When the App is loaded
+  componentWillMount() {
+    this.getProjects();
+    this.getTodos();
+  }
   
+  componentDidMount() {
+    this.getTodos();
+  }
+
   handleAddProject(project) {
     let projects = this.state.projects;
     projects.push(project);
@@ -61,6 +90,8 @@ class App extends Component {
       <div className="App">
         <AddProject addProject={this.handleAddProject}/>
         <Projects projects={this.state.projects} onDelete={this.handleDeleteProject}/>
+        <hr/>
+        <Todos todos={this.state.todos}/>
       </div>
     );
   }
